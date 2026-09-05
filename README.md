@@ -17,20 +17,20 @@ En plataformas como Spotify se publican miles de canciones todos los días. Sin 
 
 ### 2.2 Objetivos del Proyecto
 * **Objetivo General:**  
-  Desarrollar, durante el ciclo de la presente evaluación, un proceso reproducible bajo la metodología CRISP-DM que permita diagnosticar la calidad de 114.000 pistas de Spotify, cuantificar la influencia de sus características acústicas y contextuales en el nivel de popularidad, y generar un conjunto de datos preparado con un 100% de integridad estructural para la posterior predicción de tracción musical.
+Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar la calidad del dataset de canciones de Spotify, comprender qué factores se asocian con su nivel de popularidad, y dejar los datos preparados y transformados para una futura etapa de modelamiento.
 
 * **Objetivos Específicos:**
-  * Evaluar cuantitativamente la calidad del dataset en tres dimensiones estándar (completitud, unicidad y validez), logrando un índice de calidad superior al 90% previo a la transformación.
-  * Realizar un Análisis Exploratorio de Datos univariado, bivariado y multivariado sobre las 21 variables, determinando los patrones y la correlación estadística entre los atributos de audio, el contenido explícito, los géneros y la popularidad.
-  * Diseñar un pipeline de preparación y transformación modular que filtre el 100% de las anomalías operativas (registros corruptos y audios no musicales) y elimine duplicados para evitar fuga de información.
-  * Reducir la alta dimensionalidad de los 114 géneros a un esquema semántico de 12 macro-familias e incorporar un indicador de discos sin tracción para aislar el sesgo de popularidad nula.
-  * Evaluar los sesgos de muestreo derivados de las cuotas fijas por género y verificar el cumplimiento de las normativas de privacidad al operar sin datos de identificación personal.
+  * Evaluar la calidad del dataset en sus dimensiones de completitud, unicidad y validez.
+  * Realizar un análisis exploratorio univariado, bivariado y multivariado sobre las variables del dataset, identificando patrones y correlaciones entre los atributos de audio, el contenido explícito, los géneros y la popularidad.
+  * Diseñar un proceso de preparación y transformación de datos que filtre las anomalías operativas detectadas (registros corruptos y audios no musicales) y elimine duplicados, evitando fuga de información hacia una futura etapa de modelamiento.
+  * Reducir la alta dimensionalidad de los géneros musicales mediante una agrupación semántica en macro-familias, e incorporar un indicador que aísle el sesgo de popularidad nula asociado a álbumes sin tracción.
+  * Evaluar los sesgos de muestreo derivados de las cuotas fijas por género, y verificar el cumplimiento de las normativas de privacidad al operar sin datos de identificación personal.
 ---
 ### 3. Definición de KPIs
 #### 3.1 KPIs de Calidad y Preparación de Datos 
 * **Índice Global de Calidad del Catálogo:** Medición porcentual consolidada sobre dimensiones de completitud, unicidad y validez.  
   *Resultado obtenido:* **92.86%** de calidad general en el dataset original.
-* **Tasa de Depuración de Anomalías e Inconsistencias:** Filtrado del 100% de los registros operativos inválidos (444 duplicados exactos, 16.641 repeticiones por cuota de género, pistas con duración = 0 o > 15 min, y tempo = 0), logrando una matriz final limpia de **89.444 pistas únicas**.
+* **Tasa de Depuración de Anomalías e Inconsistencias:** Filtrado del 100% de los registros operativos inválidos (444 duplicados exactos, 16.641 repeticiones por cuota de género, pistas con duración = 0 o > 15 min, y tempo = 0), logrando una matriz final limpia de **89.599 pistas únicas**.
 * **Eficiencia en Reducción de Dimensionalidad Categórica:** Compactación del espacio de géneros musicales de 114 categorías nominales a **12 macro-géneros semánticos**, reduciendo la dispersión en un **89.5%**.
 
 #### 3.2 KPIs de Inteligencia Musical y Asociación
@@ -68,7 +68,7 @@ El proyecto se desarrolla bajo el estándar industrial **CRISP-DM**, cubriendo e
 El procesamiento de los datos se dividió en dos etapas para asegurar la reproducibilidad y evitar fuga de información:
 ### 6.1 Limpieza inicial 
 * **Limpieza de estructura:** se eliminó la columna **Unnamed: 0** por ser solo un índice residual y se descartó la única fila con valores nulos.
-* **Control de duplicados:** se conservó únicamente la primera aparición de cada `track_id`, evitando que la misma canción se repita en diferentes géneros y contamine la futura evaluación.
+* **Control de duplicados:** se conservó únicamente la primera aparición de cada track_id, evitando que la misma canción se repita en diferentes géneros y contamine la futura evaluación.
 * **Filtro de duración:** se eliminaron canciones con duración igual a 0 ms y aquellas mayores a 15 minutos.
 * **Ajuste de tipos:**
   * La variable **explicit**  se transformó de booleano a número entero.
