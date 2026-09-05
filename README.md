@@ -63,3 +63,41 @@ El proyecto se desarrolla bajo el estándar industrial **CRISP-DM**, cubriendo e
 * **Relación con la popularidad:**
   * Ninguna característica de audio individual explica por sí sola la popularidad,todas tienen correlación casi nula, entre -0.10 y 0.05.
   * En cambio, el género musical y si la canción es explícita sí marcan una diferencia clara en las reproducciones promedio,por ejemplo, pop-film promedia 59 puntos frente a géneros de nicho que apenas superan los 2 puntos.
+ 
+## 6. Preparación y Transformación de Datos
+El procesamiento de los datos se dividió en dos etapas para asegurar la reproducibilidad y evitar fuga de información:
+### 6.1 Limpieza inicial 
+* **Limpieza de estructura:** se eliminó la columna **Unnamed: 0** por ser solo un índice residual y se descartó la única fila con valores nulos.
+* **Control de duplicados:** se conservó únicamente la primera aparición de cada `track_id`, evitando que la misma canción se repita en diferentes géneros y contamine la futura evaluación.
+* **Filtro de duración:** se eliminaron canciones con duración igual a 0 ms y aquellas mayores a 15 minutos.
+* **Ajuste de tipos:**
+  * La variable **explicit**  se transformó de booleano a número entero.
+  * Las variables **key** y **time_signature** se pasaron a texto para que el modelo no las interprete como escalas matemáticas continuas.
+* **Agrupación de géneros:** los 114 subgéneros se redujeron a **12 macro-géneros** (Pop,Rock_Punk_Indie,Metal,Electronic_Dance,HipHop_RnB,Latin_Caribbean,Acoustic_Folk,Classical_Ambient,Jazz_Blues,Entertainment,Mood y World_Regional).
+
+### 6.2 Separación de datos
+* Antes de aplicar cualquier escalado o transformación estadística, se separó la variable objetivo **popularity** del resto de características.
+* Los datos se dividieron en **80% para entrenamiento (X_train)** y **20% para prueba (X_test)** usando una semilla fija de 42.
+
+### 6.3 Transformador dinámico
+* Se construyó una clase personalizada para identificar álbumes sin tracción comercial previa.
+* Se ajusta (.fit()) únicamente con los datos de entrenamiento para aprender los álbumes inactivos. Si en los datos de prueba aparece un álbum desconocido, se clasifica como fantasma por precaución. Esta variable (is_ghost_album) demostró una fuerte correlación negativa de **-0.41** con la popularidad.
+
+### 6.4 Ensamble final
+* **RobustScaler:** aplicado a duration_ms, loudness y tempo, utilizando la mediana y el rango intercuartílico para no verse afectado por los valores extremos.
+* **MinMaxScaler:** aplicado a las métricas acústicas que ya vienen acotadas de fábrica entre 0.0 y 1.0 (anceability,energy,speechiness,acousticness, instrumentalness,liveness,valence), además de mode y explicit.
+* **OneHotEncoder:** aplicado a las columnas de texto (macro_genre,key y time_signature) para convertirlas en variables binarias independientes.
+---
+## 7. Evaluación de Sesgos, Ética y Privacidad
+* **Privacidad de los datos :** el dataset contiene únicamente características acústicas y datos públicos de las canciones de la API de Spotify. No incluye ningún dato personal de usuarios, cumpliendo con los estándares de privacidad.
+* **Sesgo de muestreo:** cada uno de los 114 géneros tiene exactamente 1.000 canciones en el archivo original.En el consumo real de streaming esto no es así,el pop y la música urbana concentran muchas más reproducciones que géneros como el jazz o la música clásica.Entrenar con cuotas fijas artificiales puede sobreestimar la presencia de géneros pequeños.
+* **Sesgo de popularidad por origen:** se observaron diferencias grandes de popularidad promedio entre géneros globales (pop-film con 59 puntos) y géneros locales o tradicionales (iranian con 2 puntos). Un sistema que use esta métrica sin supervisión puede tender a favorecer siempre a los artistas comerciales y dejar fuera a creadores independientes o regionales.
+* **Canciones repetidas y recopilatorios:** las canciones que aparecen en múltiples álbumes o bandas sonoras pueden duplicar métricas de forma engañosa.Al filtrar por track_id único y crear la variable de álbum fantasma, se evita que estas repeticiones distorsionen los resultados del proyecto.
+---
+## 8. Estructura del Repositorio
+```text
+├── data/
+│   └── Spotify_Tracks_Dataset.csv  
+├── notebooks/
+│   └── Spotify_Tracks_Analysis.ipynb
+├── README.md                      
