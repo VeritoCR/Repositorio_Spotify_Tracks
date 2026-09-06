@@ -13,19 +13,17 @@ Para garantizar la reproducibilidad, trazabilidad y control de versiones en el d
 ## 2. Descripción del Problema de Negocio y Objetivos
 
 ### 2.1 Problema de Negocio
-En plataformas como Spotify se publican miles de canciones todos los días. Sin embargo, la gran mayoría pasa desapercibida o no logra escuchas suficientes, mientras que solo un pequeño grupo se convierte en un éxito. El desafío de este proyecto es saber si es posible anticipar qué tan popular será una canción basándonos únicamente en su inteligencia musical,es decir, en sus características de audio y en sus metadatos.Predecir este valor le sirve a las plataformas y a los creadores de música para saber, antes o recién estrenado un tema, qué nivel de tracción de escuchas puede alcanzar y qué atributos acústicos suelen premiar los oyentes dentro de cada género
-
+En plataformas como Spotify se publican miles de canciones todos los días. Sin embargo, la gran mayoría pasa desapercibida o no logra escuchas suficientes, mientras que solo un pequeño grupo se convierte en un éxito. El desafío de este proyecto es saber si es posible anticipar qué tan popular será una canción basándonos únicamente en su inteligencia musical, es decir, en sus características de audio y en sus metadatos. Predecir este valor le sirve a las plataformas y a los creadores de música para saber, antes o recién estrenado un tema, qué nivel de tracción de escuchas puede alcanzar y qué atributos acústicos suelen premiar los oyentes dentro de cada género.
 ### 2.2 Objetivos del Proyecto
 * **Objetivo General:**  
 Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar la calidad del dataset de canciones de Spotify, comprender qué factores se asocian con su nivel de popularidad, y dejar los datos preparados y transformados para una futura etapa de modelamiento.
 
 * **Objetivos Específicos:**
   * Evaluar la calidad del dataset en sus dimensiones de completitud, unicidad y validez.
-  * Realizar un análisis exploratorio univariado, bivariado y multivariado sobre las variables del dataset, identificando patrones y correlaciones entre los atributos de audio, el contenido explícito, los géneros y la popularidad.
-  * Diseñar un proceso de preparación y transformación de datos que filtre las anomalías operativas detectadas (registros corruptos y audios no musicales) y elimine duplicados, evitando fuga de información hacia una futura etapa de modelamiento.
-  * Reducir la alta dimensionalidad de los géneros musicales mediante una agrupación semántica en macro-familias.
-  * Evaluar los sesgos de muestreo derivados de las cuotas fijas por género, y verificar el cumplimiento de las normativas de privacidad al operar sin datos de identificación personal.
-
+  * Realizar un análisis exploratorio univariado, bivariado y multivariado sobre las variables del dataset, identificando patrones y correlaciones entre los             atributos de audio, el contenido explícito, los géneros y la popularidad.
+  * Diseñar un proceso de preparación y transformación de datos que filtre las anomalías operativas detectadas (registros corruptos y audios no musicales) y             elimine duplicados, evitando fuga de información hacia una futura etapa de modelamiento.
+  * Implementar una normalización contextual intra-género para evaluar el mérito acústico relativo de cada canción frente a su propio estilo musical.
+  * Evaluar los sesgos de muestreo derivados de las cuotas fijas por género, y verificar el cumplimiento de las normativas de privacidad al operar sin datos de          identificación personal.
 ---
 ### 3. Definición de KPIs
 #### 3.1 KPIs de Calidad y Preparación de Datos 
