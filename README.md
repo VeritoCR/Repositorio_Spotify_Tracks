@@ -23,8 +23,9 @@ Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar 
   * Evaluar la calidad del dataset en sus dimensiones de completitud, unicidad y validez.
   * Realizar un análisis exploratorio univariado, bivariado y multivariado sobre las variables del dataset, identificando patrones y correlaciones entre los atributos de audio, el contenido explícito, los géneros y la popularidad.
   * Diseñar un proceso de preparación y transformación de datos que filtre las anomalías operativas detectadas (registros corruptos y audios no musicales) y elimine duplicados, evitando fuga de información hacia una futura etapa de modelamiento.
-  * Reducir la alta dimensionalidad de los géneros musicales mediante una agrupación semántica en macro-familias, e incorporar un indicador que aísle el sesgo de popularidad nula asociado a álbumes sin tracción.
+  * Reducir la alta dimensionalidad de los géneros musicales mediante una agrupación semántica en macro-familias.
   * Evaluar los sesgos de muestreo derivados de las cuotas fijas por género, y verificar el cumplimiento de las normativas de privacidad al operar sin datos de identificación personal.
+
 ---
 ### 3. Definición de KPIs
 #### 3.1 KPIs de Calidad y Preparación de Datos 
@@ -34,8 +35,8 @@ Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar 
 * **Eficiencia en Reducción de Dimensionalidad Categórica:** Compactación del espacio de géneros musicales de 114 categorías nominales a **12 macro-géneros semánticos**, reduciendo la dispersión en un **89.5%**.
 
 #### 3.2 KPIs de Inteligencia Musical y Asociación
-* **Capacidad de Explicabilidad de la Popularidad:** Nivel de asociación lineal y no lineal identificado entre los atributos procesados y el target popularity. La inclusión del transformador de GhostAlbumDeriver logró aislar el impacto de la popularidad nula con una correlación de **-0.41**.
-* **Margen de Error de Estimación Tolerado:** Lograr una desviación promedio inferior a **10 puntos** de popularidad en el conjunto de prueba (`X_test`) al momento de implementar los algoritmos en la siguiente entrega.
+* **Capacidad de Explicabilidad de la Popularidad:** se midió la correlación entre los atributos procesados y popularity, usando solo el conjunto de entrenamiento para no filtrar información del conjunto de prueba. El atributo con mayor influencia individual fue instrumentalness (-0,126), seguido por pertenecer a los macro-géneros Pop (0,10) y Rock_Punk_Indie (0,08).
+* **Margen de Error de Estimación Tolerado:** lograr una desviación promedio inferior a **10 puntos** de popularidad en el conjunto de prueba (`X_test`) al momento de implementar los algoritmos en la siguiente entrega.
 ---
 ## 4. Fuentes de Datos y Metodología CRISP-DM
 ### 4.1 Fuentes de Datos
@@ -50,7 +51,7 @@ Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar 
 El proyecto se desarrolla bajo el estándar industrial **CRISP-DM**, cubriendo en esta primera entrega las siguientes etapas:
 1. **Comprensión del Negocio:** Delimitación del problema enfocado en la predicción de tracción de canciones, definición de alcance y formalización de KPIs.
 2. **Comprensión de los Datos:** Auditoría de calidad métrica (92.86%), perfilamiento estadístico, análisis de valores atípicos y correlaciones lineales (Pearson) y de rangos (Spearman).
-3. **Preparación de los Datos (Data Preparation):** Depuración de anomalías técnicas, eliminación de duplicados por pista para prevenir fuga de datos, reducción semántica a 12 macro-géneros, ingeniería de variables (GhostAlbumDeriver) y escalamiento diferenciado mediante Scikit-Learn.
+3. **Preparación de los Datos:** Depuración de anomalías técnicas, eliminación de duplicados por pista para prevenir fuga de datos, reducción semántica a 12 macro-géneros y escalamiento diferenciado mediante Scikit-Learn.
 ---
 ## 5. Resumen del Análisis Exploratorio de Datos (EDA)
 * **Calidad de los datos:**
@@ -79,20 +80,20 @@ El procesamiento de los datos se dividió en dos etapas para asegurar la reprodu
 * Antes de aplicar cualquier escalado o transformación estadística, se separó la variable objetivo **popularity** del resto de características.
 * Los datos se dividieron en **80% para entrenamiento (X_train)** y **20% para prueba (X_test)** usando una semilla fija de 42.
 
-### 6.3 Transformador dinámico
-* Se construyó una clase personalizada para identificar álbumes sin tracción comercial previa.
-* Se ajusta (.fit()) únicamente con los datos de entrenamiento para aprender los álbumes inactivos. Si en los datos de prueba aparece un álbum desconocido, se clasifica como fantasma por precaución. Esta variable (is_ghost_album) demostró una fuerte correlación negativa de **-0.41** con la popularidad.
-
-### 6.4 Ensamble final
+### 6.3 Ensamble final
 * **RobustScaler:** aplicado a duration_ms, loudness y tempo, utilizando la mediana y el rango intercuartílico para no verse afectado por los valores extremos.
 * **MinMaxScaler:** aplicado a las métricas acústicas que ya vienen acotadas de fábrica entre 0.0 y 1.0 (anceability,energy,speechiness,acousticness, instrumentalness,liveness,valence), además de mode y explicit.
 * **OneHotEncoder:** aplicado a las columnas de texto (macro_genre,key y time_signature) para convertirlas en variables binarias independientes.
 ---
 ## 7. Evaluación de Sesgos, Ética y Privacidad
-* **Privacidad de los datos :** el dataset contiene únicamente características acústicas y datos públicos de las canciones de la API de Spotify. No incluye ningún dato personal de usuarios, cumpliendo con los estándares de privacidad.
-* **Sesgo de muestreo:** cada uno de los 114 géneros tiene exactamente 1.000 canciones en el archivo original.En el consumo real de streaming esto no es así,el pop y la música urbana concentran muchas más reproducciones que géneros como el jazz o la música clásica.Entrenar con cuotas fijas artificiales puede sobreestimar la presencia de géneros pequeños.
-* **Sesgo de popularidad por origen:** se observaron diferencias grandes de popularidad promedio entre géneros globales (pop-film con 59 puntos) y géneros locales o tradicionales (iranian con 2 puntos). Un sistema que use esta métrica sin supervisión puede tender a favorecer siempre a los artistas comerciales y dejar fuera a creadores independientes o regionales.
-* **Canciones repetidas y recopilatorios:** las canciones que aparecen en múltiples álbumes o bandas sonoras pueden duplicar métricas de forma engañosa.Al filtrar por track_id único y crear la variable de álbum fantasma, se evita que estas repeticiones distorsionen los resultados del proyecto.
+* **Privacidad de los datos:** el dataset contiene únicamente características acústicas y datos públicos de las canciones de la API de Spotify. No incluye ningún dato personal de usuarios, cumpliendo con los estándares de privacidad.
+* **Sesgo de muestreo:** cada uno de los 114 géneros tiene exactamente 1.000 canciones en el archivo original. En el consumo real de streaming esto no es así, el pop y la música urbana concentran muchas más reproducciones que géneros como el jazz o la música clásica. Entrenar con cuotas fijas artificiales puede sobreestimar la presencia de géneros pequeños.
+* **Sesgo de popularidad por origen:** se observaron diferencias grandes de popularidad promedio entre géneros globales (pop-film con 59 puntos) y géneros locales (iranian con 2 puntos). Un sistema que use esta métrica sin supervisión puede tender a favorecer siempre a los artistas comerciales y dejar fuera a creadores independientes.
+* **Canciones repetidas y recopilatorios:** las canciones que aparecen en múltiples álbumes o bandas sonoras pueden duplicar métricas de forma engañosa. Al filtrar por track_id único se evita que estas repeticiones distorsionen los resultados del proyecto.
+* **Sesgo por historial de artista:** en una primera versión del proyecto se había creado una variable para marcar álbumes sin reproducciones previas. Se descartó esta idea porque terminaba castigando a artistas nuevos que simplemente no llevan tiempo suficiente en la plataforma, no porque su música sea peor. Un modelo entrenado con esa variable habría aprendido más bien a distinguir quién ya es conocido que a evaluar las características reales de la canción, algo contrario al objetivo del proyecto.
+* **Documentación de supuestos y limitaciones:** cada decisión tomada durante la limpieza y transformación de los datos queda documentada en este informe y en el notebook, de manera que cualquier persona que retome el proyecto pueda entender el alcance y las limitaciones de lo ya trabajado, en lugar de tratar el proceso como una "caja negra".
+
+---
 ---
 ## 8. Estructura del Repositorio
 ```text
