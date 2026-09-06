@@ -29,12 +29,12 @@ Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar 
 #### 3.1 KPIs de Calidad y Preparación de Datos 
 * **Índice Global de Calidad del Catálogo:** Medición porcentual consolidada sobre dimensiones de completitud, unicidad y validez.  
   *Resultado obtenido:* **92.86%** de calidad general en el dataset original.
-* **Tasa de Depuración de Anomalías e Inconsistencias:** Filtrado del 100% de los registros operativos inválidos (444 duplicados exactos, 16.641 repeticiones por cuota de género, pistas con duración = 0 o > 15 min, y tempo = 0), logrando una matriz final limpia de **89.599 pistas únicas**.
-* **Eficiencia en Reducción de Dimensionalidad Categórica:** Compactación del espacio de géneros musicales de 114 categorías nominales a **12 macro-géneros semánticos**, reduciendo la dispersión en un **89.5%**.
+* **Tasa de Depuración de Anomalías e Inconsistencias:** Filtrado del 100% de los registros operativos inválidos (444 duplicados exactos, 16.641 repeticiones por cuota de género, pistas con duración = 0 o > 15 min, y compás inválido), logrando una matriz final limpia de **89.439 pistas únicas**.
+* **Normalización Contextual por Género:** en vez de agrupar los 114 géneros en categorías más amplias, se decidió mantenerlos completos y usarlos para calcular un Z-score propio por género en cada atributo acústico, evitando así perder la especificidad de cada estilo musical.
 
 #### 3.2 KPIs de Inteligencia Musical y Asociación
-* **Capacidad de Explicabilidad de la Popularidad:** se midió la correlación entre los atributos procesados y popularity, usando solo el conjunto de entrenamiento para no filtrar información del conjunto de prueba. El atributo con mayor influencia individual fue instrumentalness (-0,126), seguido por pertenecer a los macro-géneros Pop (0,10) y Rock_Punk_Indie (0,08).
-* **Margen de Error de Estimación Tolerado:** lograr una desviación promedio inferior a **10 puntos** de popularidad en el conjunto de prueba (`X_test`) al momento de implementar los algoritmos en la siguiente entrega.
+* **Capacidad de Explicabilidad de la Popularidad:** se midió la correlación entre los atributos ya normalizados y *popularity*, usando solo el conjunto de entrenamiento para no filtrar información del conjunto de prueba. Los atributos con mayor influencia positiva fueron *loudness* (0,074) y tener compás 4/4 (0,069); en el otro extremo, el compás 3/4 (-0,055) fue el que más penalizó.
+* **Margen de Error de Estimación Tolerado:** lograr una desviación promedio inferior a **10 puntos** de popularidad en el conjunto de prueba (X_test) al momento de implementar los algoritmos en la siguiente entrega.
 ---
 ## 4. Fuentes de Datos y Metodología CRISP-DM
 ### 4.1 Fuentes de Datos
@@ -49,7 +49,7 @@ Desarrollar, bajo la metodología CRISP-DM, un proceso que permita diagnosticar 
 El proyecto se desarrolla bajo el estándar industrial **CRISP-DM**, cubriendo en esta primera entrega las siguientes etapas:
 1. **Comprensión del Negocio:** Delimitación del problema enfocado en la predicción de tracción de canciones, definición de alcance y formalización de KPIs.
 2. **Comprensión de los Datos:** Auditoría de calidad métrica (92.86%), perfilamiento estadístico, análisis de valores atípicos y correlaciones lineales (Pearson) y de rangos (Spearman).
-3. **Preparación de los Datos:** Depuración de anomalías técnicas, eliminación de duplicados por pista para prevenir fuga de datos, reducción semántica a 12 macro-géneros y escalamiento diferenciado mediante Scikit-Learn.
+3. **Preparación de los Datos:** Depuración de anomalías técnicas, eliminación de duplicados por pista para prevenir fuga de datos, normalización contextual de atributos acústicos por género y escalamiento diferenciado mediante Scikit-Learn.
 ---
 ## 5. Resumen del Análisis Exploratorio de Datos (EDA)
 * **Calidad de los datos:**
@@ -68,25 +68,27 @@ El procesamiento de los datos se dividió en dos etapas para asegurar la reprodu
 ### 6.1 Limpieza inicial 
 * **Limpieza de estructura:** se eliminó la columna **Unnamed: 0** por ser solo un índice residual y se descartó la única fila con valores nulos.
 * **Control de duplicados:** se conservó únicamente la primera aparición de cada track_id, evitando que la misma canción se repita en diferentes géneros y contamine la futura evaluación.
-* **Filtro de duración:** se eliminaron canciones con duración igual a 0 ms y aquellas mayores a 15 minutos.
+* **Filtro de duración y compás:** se eliminaron canciones con duración igual a 0 ms, aquellas mayores a 15 minutos, y registros con compás igual a 0, ya que un compás no puede tener cero tiempos.
+* **Excepción justificada:** se mantuvieron 157 registros con tempo = 0, ya que el 88% corresponde al género *sleep*, donde la ausencia de un tempo detectable es un rasgo real de este tipo de música ambiental, no un error de carga.
 * **Ajuste de tipos:**
-  * La variable **explicit**  se transformó de booleano a número entero.
+  * La variable **explicit** se transformó de booleano a número entero.
   * Las variables **key** y **time_signature** se pasaron a texto para que el modelo no las interprete como escalas matemáticas continuas.
-* **Agrupación de géneros:** los 114 subgéneros se redujeron a **12 macro-géneros** (Pop,Rock_Punk_Indie,Metal,Electronic_Dance,HipHop_RnB,Latin_Caribbean,Acoustic_Folk,Classical_Ambient,Jazz_Blues,Entertainment,Mood y World_Regional).
+* **Eliminación de columnas de alta cardinalidad:** se descartaron artists,album_name,track_name y track_id, ya que su volumen de categorías únicas no aporta valor directo al modelamiento y podría introducir sesgo de "fama comercial" si el modelo aprendiera a asociar popularidad con nombres específicos en vez de con atributos musicales.
 
 ### 6.2 Separación de datos
 * Antes de aplicar cualquier escalado o transformación estadística, se separó la variable objetivo **popularity** del resto de características.
 * Los datos se dividieron en **80% para entrenamiento (X_train)** y **20% para prueba (X_test)** usando una semilla fija de 42.
 
 ### 6.3 Ensamble final
+* **Normalización Contextual por Género:** en vez de comparar todas las canciones contra un promedio general del catálogo, se calculó la media y desviación estándar de cada atributo acústico **dentro de cada género por separado**, usando solo los datos de entrenamiento. Así, una canción se evalúa frente a lo esperado para su propio estilo musical, y no frente a géneros con una naturaleza sonora distinta. Una vez calculado, se descarta la columna de género, por lo que el modelo no tiene acceso directo a esa etiqueta.
 * **RobustScaler:** aplicado a duration_ms, loudness y tempo, utilizando la mediana y el rango intercuartílico para no verse afectado por los valores extremos.
-* **MinMaxScaler:** aplicado a las métricas acústicas que ya vienen acotadas de fábrica entre 0.0 y 1.0 (anceability,energy,speechiness,acousticness, instrumentalness,liveness,valence), además de mode y explicit.
-* **OneHotEncoder:** aplicado a las columnas de texto (macro_genre,key y time_signature) para convertirlas en variables binarias independientes.
+* **OneHotEncoder:** aplicado a key y time_signature, para convertirlas en variables binarias independientes sin asumir una progresión matemática falsa entre sus valores.
 ---
 ## 7. Evaluación de Sesgos, Ética y Privacidad
 * **Privacidad de los datos:** el dataset contiene únicamente características acústicas y datos públicos de las canciones de la API de Spotify. No incluye ningún dato personal de usuarios, cumpliendo con los estándares de privacidad.
 * **Sesgo de muestreo:** cada uno de los 114 géneros tiene exactamente 1.000 canciones en el archivo original. En el consumo real de streaming esto no es así, el pop y la música urbana concentran muchas más reproducciones que géneros como el jazz o la música clásica. Entrenar con cuotas fijas artificiales puede sobreestimar la presencia de géneros pequeños.
-* **Sesgo de popularidad por origen:** se observaron diferencias grandes de popularidad promedio entre géneros globales (pop-film con 59 puntos) y géneros locales (iranian con 2 puntos). Un sistema que use esta métrica sin supervisión puede tender a favorecer siempre a los artistas comerciales y dejar fuera a creadores independientes.
+* **Sesgo de popularidad por origen:** se observaron diferencias grandes de popularidad promedio entre géneros globales y géneros locales. Frente a este riesgo se usó la normalización contextual por género, descartando después la etiqueta de género, así el modelo no tiene acceso directo para favorecer un estilo solo por su volumen de datos. Sin embargo, esto no corrige el sesgo de fondo, la audiencia real de un género de nicho sigue siendo menor, y ese techo de mercado no desaparece solo porque una canción destaque dentro de su propio grupo.
+* 
 * **Canciones repetidas y recopilatorios:** las canciones que aparecen en múltiples álbumes o bandas sonoras pueden duplicar métricas de forma engañosa. Al filtrar por track_id único se evita que estas repeticiones distorsionen los resultados del proyecto.
 * **Sesgo por historial de artista:** en una primera versión del proyecto se había creado una variable para marcar álbumes sin reproducciones previas. Se descartó esta idea porque terminaba castigando a artistas nuevos que simplemente no llevan tiempo suficiente en la plataforma, no porque su música sea peor. Un modelo entrenado con esa variable habría aprendido más bien a distinguir quién ya es conocido que a evaluar las características reales de la canción, algo contrario al objetivo del proyecto.
 * **Documentación de supuestos y limitaciones:** cada decisión tomada durante la limpieza y transformación de los datos queda documentada en este informe y en el notebook, de manera que cualquier persona que retome el proyecto pueda entender el alcance y las limitaciones de lo ya trabajado, en lugar de tratar el proceso como una "caja negra".
