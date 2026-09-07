@@ -100,6 +100,8 @@ El procesamiento de los datos se dividió en dos etapas para asegurar la reprodu
 ```text
 ├── data/
 │   └── Spotify_Tracks_Dataset.csv
+│   └── spotify_test_processed.csv
+│   └── spotify_train_processed.csv
 ├── notebooks/
 │   └── Spotify_Tracks_Analysis.ipynb
 ├── Imagenes/
@@ -107,9 +109,11 @@ El procesamiento de los datos se dividió en dos etapas para asegurar la reprodu
 │   ├── Análisis de Correlación de Pearson.png
 │   ├── Análisis de Correlación de Spearman.png
 │   ├── Distribución de Variable Objetivo.png
+│   ├── Evidencia de Transformación Acústica.png
+│   ├── Popularidad Promedio por Género.png
 │   ├── Porcentaje de Canciones con Popularidad Cero.png
 │   ├── Relación entre popularity y Género.png
-│   ├── Top 10 Características más Influyentes.png
-│   └── Top 10 Generos más Populares.png
+│   ├── Top 10 Generos más Populares.png
+│   └── Top 5 Caracteristicas más Influyentes en Popularity.png
 └── README.md
 ```           
